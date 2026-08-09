@@ -1,0 +1,9 @@
+.DS_Store
+.vscode/
+**/node_modules/
+.env
+backend/.env
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
