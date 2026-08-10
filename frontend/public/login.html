@@ -278,7 +278,11 @@
             localStorage.setItem('tm_username', data.username);
             window.location.href = 'index.html';
         } catch (err) {
-            showError('Cannot connect to server. Make sure server is running.');
+            const apiBase = getDeploymentApiBase();
+            const deployedHint = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('github.io')
+                ? 'Because this frontend is deployed separately, save your Render backend URL on this page first.'
+                : 'Make sure the backend server is running and the backend URL is correct.';
+            showError(`Cannot connect to server at ${apiBase || 'unknown backend URL'}. ${deployedHint}`);
         }
     }
 
@@ -302,7 +306,11 @@
             showSuccess('Account created! Redirecting...');
             setTimeout(() => window.location.href = 'index.html', 1500);
         } catch (err) {
-            showError('Cannot connect to server. Make sure server is running.');
+            const apiBase = getDeploymentApiBase();
+            const deployedHint = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('github.io')
+                ? 'Because this frontend is deployed separately, save your Render backend URL on this page first.'
+                : 'Make sure the backend server is running and the backend URL is correct.';
+            showError(`Cannot connect to server at ${apiBase || 'unknown backend URL'}. ${deployedHint}`);
         }
     }
 

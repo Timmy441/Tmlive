@@ -17,6 +17,14 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const app = express();
 const httpServer = createServer(app);
 
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'TM Live backend is running',
+    environment: process.env.VERCEL ? 'vercel' : 'local'
+  });
+});
+
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5001,http://127.0.0.1:5001,http://localhost:5500,http://127.0.0.1:5500').split(',').map(s => s.trim());
 const corsOptions = {
   origin: function(origin, callback) {
@@ -402,9 +410,12 @@ mongoose.connect(process.env.MONGO_URI, {
   .catch(err => console.log('❌ MongoDB error:', err));
 
 const PORT = process.env.PORT || 5001;
+if (!process.env.VERCEL) {
+  httpServer.listen(PORT, () => {
+    console.log(`✅ Server on http://localhost:${PORT}`);
+    console.log('✅ Video calling ready!');
+    console.log('✅ Live streaming ready!');
+  });
+}
 
-httpServer.listen(PORT, () => {
-  console.log(`✅ Server on http://localhost:${PORT}`);
-  console.log('✅ Video calling ready!');
-  console.log('✅ Live streaming ready!');
-});
+module.exports = app;
