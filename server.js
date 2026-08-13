@@ -412,9 +412,9 @@ mongoose.connect(process.env.MONGO_URI, {
 const PORT = process.env.PORT || 5001;
 if (!process.env.VERCEL) {
   httpServer.listen(PORT, () => {
-    console.log(`✅ Server on http://localhost:${PORT}`);
-    console.log('✅ Video calling ready!');
-    console.log('✅ Live streaming ready!');
+    console.log(`Server on http://localhost:${PORT}`);
+    console.log('Video calling ready!');
+    console.log('Live streaming ready!');
   });
 }
 
