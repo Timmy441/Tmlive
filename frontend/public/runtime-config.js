@@ -49,7 +49,7 @@
             'https://tmlive-avtn-bwjqtw003-timmy441s-projects.vercel.app';
 
         const productionFrontendHost =
-            'tmliveweb-2jsyts4fb-timmy441s-projects.vercel.app';
+    'tmliveweb.vercel.app';
 
         if (
             typeof window !== 'undefined' &&
