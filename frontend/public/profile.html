@@ -328,7 +328,7 @@
 <script>
     const token = localStorage.getItem('tm_token');
     const myUsername = localStorage.getItem('tm_username');
-    if (!token) window.location.href = 'login.html';
+    // if (!token) window.location.href = 'login.html';
 
     const urlParams = new URLSearchParams(window.location.search);
     const profileUsername = urlParams.get('user') || myUsername;
