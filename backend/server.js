@@ -15,6 +15,7 @@ const adminRouter = require('./admin');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
+app.set('trust proxy', 1);
 const httpServer = createServer(app);
 
 app.get('/api/health', (req, res) => {
@@ -419,4 +420,3 @@ if (!process.env.VERCEL) {
 }
 
 module.exports = app;
-
