@@ -46,7 +46,7 @@
 
     function getApiBase() {
         const productionApiBase =
-            'https://tmlive-avtn-bwjqtw003-timmy441s-projects.vercel.app';
+            'https://tmlive-avtn.vercel.app';
 
         const productionFrontendHost =
     'tmliveweb.vercel.app';
