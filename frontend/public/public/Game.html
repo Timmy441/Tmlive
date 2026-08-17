@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameVault - Login & Play</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --bg-light: #f8f9fa;
+            --bg-dark: #1a1a2e;
+            --text-light: #333;
+            --text-dark: #f8f9fa;
+            --card-bg-light: #ffffff;
+            --card-bg-dark: #16213e;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-light);
+            background: var(--bg-light);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .user-info {
+            color: white;
+            font-weight: 500;
+            display: none;
+        }
+
+        .logout-btn {
+            padding: 0.4rem 1rem;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            cursor: pointer;
+            margin-left: 1rem;
+        }
+
+        .theme-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 6rem 5% 4rem;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero p.hidden {
+            display: none;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: white;
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Login Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        body.dark-mode .modal-content {
+            background: var(--card-bg-dark);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        body.dark-mode .form-group input {
+            background: var(--bg-dark);
+            border-color: #444;
+            color: var(--text-dark);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .auth-btn:hover {
+            opacity: 0.9;
+        }
+
+        .switch-auth {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .switch-auth a {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .games-section {
+            padding: 4rem 5%;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.7rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .game-card {
+            background: var(--card-bg-light);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            padding: 1.5rem;
+        }
+
+        body.dark-mode .game-card {
+            background: var(--card-bg-dark);
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .game-card.hidden {
+            display: none;
+        }
+
+        .game-image {
+            height: 160px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .gradient-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+
+        .game-icon {
+            font-size: 3.5rem;
+        }
+
+        .game-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .genre {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        body.dark-mode .description {
+            color: #aaa;
+        }
+
+        .play-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .play-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Game iframe overlay */
+        .game-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .game-frame {
+            width: 95%;
+            max-width: 1000px;
+            height: 80vh;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .close-game {
+            margin-top: 1rem;
+            padding: 0.8rem 2rem;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2rem; }
+            .filter-buttons { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">GameVault</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#games">Games</a></li>
+        </ul>
+        <div>
+            <span class="user-info" id="user-email"></span>
+            <button class="logout-btn" id="logout-btn" style="display:none;">Logout</button>
+            <button id="login-btn" class="theme-btn" style="margin-left:1rem;">🔐 Login</button>
+            <button id="theme-toggle" class="theme-btn">🌙 Dark Mode</button>
+        </div>
+    </nav>
+
+    <header id="home" class="hero">
+        <h1>Welcome to GameVault</h1>
+        <p id="guest-msg">Login to play games and track your progress!</p>
+        <p id="user-msg" class="hidden">Ready to game? Click Play Now on any game!</p>
+        <a href="#games" class="cta-button" id="browse-btn">Browse Games</a>
+    </header>
+
+    <!-- Login/Register Modal -->
+    <div class="modal" id="auth-modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <h2 id="modal-title">Login</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email-input" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password-input" placeholder="Your password">
+            </div>
+            <button class="auth-btn" id="auth-action-btn">Login</button>
+            <div class="error-msg" id="error-msg"></div>
+            <div class="switch-auth">
+                <span id="switch-text">Don't have an account? </span>
+                <a id="switch-auth-link">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Overlay -->
+    <div class="game-overlay" id="game-overlay">
+        <iframe class="game-frame" id="game-frame" src=""></iframe>
+        <button class="close-game" id="close-game-btn">Close Game</button>
+    </div>
+
+    <section id="games" class="games-section">
+        <h2>Featured Games</h2>
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="action">Action</button>
+            <button class="filter-btn" data-filter="adventure">Adventure</button>
+            <button class="filter-btn" data-filter="rpg">RPG</button>
+            <button class="filter-btn" data-filter="sports">Sports</button>
+        </div>
+
+        <div class="games-grid">
+            <div class="game-card" data-category="action" data-game-url="https://play2048.co/">
+                <div class="game-image gradient-1"><span class="game-icon">🎯</span></div>
+                <h3>2048 Challenge</h3>
+                <p class="genre">Action</p>
+                <p class="description">Merge numbers to reach 2048!</p>
+                <button class="play-btn">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="action" data-game-url="https://slither.io/">
+                <div class="game-image gradient-5"><span class="game-icon">🚀</span></div>
+                <h3>Slither Battle</h3>
+                <p class="genre">Action</p>
+                <p class="description">Snake battle multiplayer!</p>
+                <button class="play-btn">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="adventure" data-game-url="https://poki.com/en/g/2048">
+                <div class="game-image gradient-2"><span class="game-icon">🗺️</span></div>
+                <h3>Mystery Quest</h3>
+                <p class="genre">Adventure</p>
+                <p class="description">Explore and solve puzzles!</p>
+                <button class="play-btn">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="rpg" data-game-url="https://kolonias.com/games/rpg/">
+                <div class="game-image gradient-3"><span class="game-icon">⚔️</span></div>
+                <h3>Dragon Realm</h3>
+                <p class="genre">RPG</p>
+                <p class="description">Fantasy adventure with dragons!</p>
+                <button class="play-btn">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="sports" data-game-url="https://poki.com/en/g/soccer-physics">
+                <div class="game-image gradient-4"><span class="game-icon">⚽</span></div>
+                <h3>Pro League 2026</h3>
+                <p class="genre">Sports</p>
+                <p class="description">Football simulation!</p>
+                <button class="play-btn">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="adventure" data-game-url="https://poki.com/en/g/survival-game">
+                <div class="game-image gradient-6"><span class="game-icon">🏝️</span></div>
+                <h3>Island Escape</h3>
+                <p class="genre">Adventure</p>
+                <p class="description">Survive on deserted island!</p>
+                <button class="play-btn">Play Now</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 GameVault. Built by Babalola Booluwatife. All rights reserved.</p>
+    </footer>
+
+    <!-- ✅ Single script block: theme toggle here, all auth & game logic in the module below -->
+    <script>
+        // Theme Toggle (does not need Firebase, safe to keep outside module)
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            document.getElementById('theme-toggle').textContent =
+                body.classList.contains('dark-mode') ? '☀️ Light Mode' : '🌙 Dark Mode';
+        });
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Game Filtering
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const gameCards = document.querySelectorAll('.game-card');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.getAttribute('data-filter');
+                gameCards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- ✅ FIX: All auth + play button logic in ONE module script — no duplicates -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXxxlZbMlqiAxCGJibIrhmUNntmY-69ik",
+            authDomain: "gamingvault-4d14f.firebaseapp.com",
+            databaseURL: "https://gamingvault-4d14f-default-rtdb.firebaseio.com",
+            projectId: "gamingvault-4d14f",
+            storageBucket: "gamingvault-4d14f.firebasestorage.app",
+            messagingSenderId: "382926805729",
+            appId: "1:382926805729:web:d811e0669379b42b9eb5a0",
+            measurementId: "G-NF8DV5Z9N5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Elements
+        const loginBtn       = document.getElementById("login-btn");
+        const logoutBtn      = document.getElementById("logout-btn");
+        const authModal      = document.getElementById("auth-modal");
+        const closeModal     = document.getElementById("close-modal");
+        const authActionBtn  = document.getElementById("auth-action-btn");
+        const switchAuthLink = document.getElementById("switch-auth-link"); // ✅ fixed ID (was duplicate of element)
+        const modalTitle     = document.getElementById("modal-title");
+        const switchText     = document.getElementById("switch-text");
+        const emailInput     = document.getElementById("email-input");
+        const passwordInput  = document.getElementById("password-input");
+        const errorMsg       = document.getElementById("error-msg");
+        const userEmail      = document.getElementById("user-email");
+        const guestMsg       = document.getElementById("guest-msg");
+        const userMsg        = document.getElementById("user-msg");
+        const gameOverlay    = document.getElementById("game-overlay");
+        const gameFrame      = document.getElementById("game-frame");
+        const closeGameBtn   = document.getElementById("close-game-btn");
+
+        let isLogin = true;
+
+        // Open modal
+        loginBtn.addEventListener("click", () => {
+            authModal.style.display = "flex";
+        });
+
+        // Close modal
+        closeModal.addEventListener("click", () => {
+            authModal.style.display = "none";
+        });
+
+        // Switch Login / Signup
+        switchAuthLink.addEventListener("click", () => {
+            isLogin = !isLogin;
+            if (isLogin) {
+                modalTitle.textContent    = "Login";
+                authActionBtn.textContent = "Login";
+                switchText.textContent    = "Don't have an account? ";
+                switchAuthLink.textContent = "Sign up";
+            } else {
+                modalTitle.textContent    = "Create Account";
+                authActionBtn.textContent = "Sign Up";
+                switchText.textContent    = "Already have an account? ";
+                switchAuthLink.textContent = "Login";
+            }
+        });
+
+        // Login or Sign Up
+        authActionBtn.addEventListener("click", async () => {
+            const email    = emailInput.value.trim();
+            const password = passwordInput.value;
+            errorMsg.style.display = "none";
+
+            try {
+                if (isLogin) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                }
+                authModal.style.display = "none";
+                emailInput.value    = "";
+                passwordInput.value = "";
+            } catch (error) {
+                errorMsg.style.display = "block";
+                errorMsg.textContent   = error.message;
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener("click", async () => {
+            await signOut(auth);
+        });
+
+        // Auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userEmail.style.display    = "inline";
+                userEmail.textContent      = user.email;
+                logoutBtn.style.display    = "inline-block";
+                loginBtn.style.display     = "none";
+                guestMsg.classList.add("hidden");
+                userMsg.classList.remove("hidden");
+            } else {
+                userEmail.style.display    = "none";
+                logoutBtn.style.display    = "none";
+                loginBtn.style.display     = "inline-block";
+                guestMsg.classList.remove("hidden");
+                userMsg.classList.add("hidden");
+            }
+        });
+
+        // ✅ FIX: Single play button handler with auth gate
+        document.querySelectorAll(".play-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                // If not logged in, open login modal instead
+                if (!auth.currentUser) {
+                    authModal.style.display = "flex";
+                    return;
+                }
+                const gameUrl = this.closest(".game-card").dataset.gameUrl;
+                gameFrame.src = gameUrl;
+                gameOverlay.style.display = "flex";
+            });
+        });
+
+        // Close game overlay
+        closeGameBtn.addEventListener("click", () => {
+            gameOverlay.style.display = "none";
+            gameFrame.src = "";
+        });
+    </script>
+</body>
+</html>
