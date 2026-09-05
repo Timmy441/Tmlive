@@ -7,17 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TM Live - Professional Video Chat Platform</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="video-background.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <script src="runtime-config.js"></script>
 </head>
 <body>
-    <video class="background-video" autoplay muted loop playsinline aria-hidden="true"><source src="Img/background video.1.mp4" type="video/mp4"></video>
-    <div class="background-video-overlay" aria-hidden="true"></div>
     <!-- Page Loader -->
     <div id="pageLoader" style="
         position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999;
-        background: #0f0f1a;
+        background: #0f0f1a url('../img/Background_1.jpg') center/cover no-repeat;
         display:flex; flex-direction:column; align-items:center; justify-content:center;
         transition: opacity 0.5s ease;
     ">
@@ -44,6 +41,14 @@
             }, 1200);
         });
     </script>
+
+    <div class="background-video-wrap" aria-hidden="true">
+        <video class="background-video" autoplay muted loop playsinline preload="metadata" poster="Img/background 2-1.jpg">
+            <source src="Img/background video.1.mp4" type="video/mp4">
+        </video>
+        <div class="background-video-overlay"></div>
+    </div>
+
     <div class="app-container">
         <!-- Notification Panel -->
         <div class="notification-panel" id="notificationPanel">

@@ -67,15 +67,42 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: transparent;
+    background: radial-gradient(circle at top, rgba(255,255,255,0.10), transparent 28%),
+                linear-gradient(135deg, rgba(102,126,234,0.6), rgba(118,75,162,0.8));
     min-height: 100vh;
     color: var(--text-primary);
     line-height: 1.6;
+    background-image: url('Img/background 2-1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+}
+
+.background-video-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.background-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.background-video-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(15, 15, 35, 0.62), rgba(42, 26, 84, 0.48));
 }
 
 /* ===== App Container ===== */
 .app-container {
     position: relative;
+    z-index: 1;
     min-height: 100vh;
     padding: 20px;
 }
@@ -955,7 +982,10 @@ body {
 }
 
 body.game-room {
-    background: transparent;
+    background-image: url('Img/Background 1.jpg');
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 .game-page .header {
@@ -1992,4 +2022,96 @@ body.game-room {
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+/* ===== TM Live 2026 visual system ===== */
+:root {
+    --primary-color: #8b7cff;
+    --primary-dark: #6256d9;
+    --secondary-color: #ff7b72;
+    --success-color: #35d6a2;
+    --danger-color: #ff6b78;
+    --warning-color: #f7c96f;
+    --info-color: #71b8ff;
+    --bg-light: #111a2d;
+    --bg-white: #17233b;
+    --bg-dark: #0b1220;
+    --bg-darker: #070c16;
+    --text-primary: #f3f6ff;
+    --text-secondary: #aab7d2;
+    --text-light: #71809e;
+    --text-white: #ffffff;
+    --border-light: rgba(255,255,255,0.08);
+    --border-medium: rgba(255,255,255,0.13);
+    --border-dark: rgba(255,255,255,0.2);
+    --shadow-sm: 0 10px 30px rgba(0,0,0,0.18);
+    --shadow-md: 0 18px 48px rgba(0,0,0,0.24);
+    --shadow-lg: 0 28px 80px rgba(0,0,0,0.3);
+    --shadow-xl: 0 40px 120px rgba(0,0,0,0.42);
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+}
+
+html { background: var(--bg-darker); }
+body {
+    background: radial-gradient(circle at 8% 0%, rgba(139,124,255,0.2), transparent 28%),
+                radial-gradient(circle at 92% 10%, rgba(255,123,114,0.1), transparent 22%),
+                linear-gradient(145deg, #070c16 0%, #0e1729 54%, #11182d 100%);
+    color: var(--text-primary);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+.background-video-overlay { background: linear-gradient(135deg, rgba(7,12,22,0.9), rgba(16,20,44,0.78)); }
+.app-container { padding: 24px; }
+.container { max-width: 1440px; background: rgba(14,23,41,0.86); border: 1px solid var(--border-light); backdrop-filter: blur(22px); }
+.header { padding: 22px 28px; background: rgba(17,28,51,0.78); border-bottom: 1px solid var(--border-light); }
+.header-icon { color: var(--secondary-color); }
+.header-left h1 { letter-spacing: -0.04em; }
+.header-center h2 { color: var(--text-secondary); }
+.nav-link { color: var(--text-secondary); }
+.nav-link:hover, .nav-link.active { background: rgba(139,124,255,0.16); color: var(--text-primary); }
+.notification-btn, .settings-btn, .dark-mode-btn { background: rgba(255,255,255,0.07); border: 1px solid var(--border-light); }
+.status-bar { background: rgba(53,214,162,0.08); border-color: rgba(53,214,162,0.2); color: #92f1cc; }
+.hero-section { background: linear-gradient(135deg, rgba(139,124,255,0.12), rgba(255,123,114,0.06)); border-color: rgba(139,124,255,0.25); }
+.hero-copy h1, .metric-card strong, .game-room-status { color: var(--text-primary); }
+.eyebrow { color: var(--secondary-color); }
+.hero-btn-primary, .btn-primary, .add-favorite-btn, .send-btn, .notification-btn-action { background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); }
+.hero-btn-secondary, .game-room-btn { background: rgba(255,255,255,0.06); color: var(--text-primary); border-color: var(--border-light); }
+.metric-card, .game-room-card, .sidebar-section, .chat-room-card { background: rgba(23,35,59,0.72); border-color: var(--border-light); box-shadow: var(--shadow-sm); }
+.metric-card { border-radius: var(--radius-lg); }
+.main-layout { gap: 20px; padding: 20px 25px 28px; }
+.sidebar { background: rgba(9,16,30,0.6); border: 1px solid var(--border-light); border-radius: var(--radius-lg); }
+.sidebar-section { border-bottom-color: var(--border-light); }
+.sidebar-section h3 { color: var(--text-primary); }
+.user-item { background: rgba(255,255,255,0.045); border: 1px solid transparent; }
+.user-item:hover { background: rgba(139,124,255,0.12); border-color: rgba(139,124,255,0.2); }
+.messages { background: rgba(7,12,22,0.34); }
+.chat-input-panel { background: rgba(255,255,255,0.04); border-top-color: var(--border-light); }
+.chat-input-panel input, .support-input input { background: rgba(255,255,255,0.06); border-color: var(--border-light); color: var(--text-primary); }
+.modal-content, .notification-panel { background: #111d32; border: 1px solid var(--border-light); }
+.notification-header { background: linear-gradient(135deg, #292554, #582d48); }
+input:focus, textarea:focus, button:focus-visible, a:focus-visible { outline: 3px solid rgba(113,184,255,0.55); outline-offset: 3px; }
+@media (max-width: 768px) {
+    .app-container { padding: 10px; }
+    .header { padding: 18px; align-items: flex-start; }
+    .header-center--stack { width: 100%; }
+    .header-right { justify-content: flex-start; }
+    .header-right .dark-mode-btn span { display: none; }
+    .main-layout { padding: 12px; }
+    .hero-section { margin: 12px; padding: 22px; }
+    .hero-copy h1 { font-size: 2rem; }
+    .nav-link { padding: 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
