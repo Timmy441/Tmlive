@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     function normalizeUrl(url) {
         return String(url || '').trim().replace(/\/+$/, '');
     }
@@ -75,6 +75,20 @@
 
         if (savedSocket) {
             return savedSocket;
+        }
+
+        const productionSocketBase =
+    'https://tm-live-backend-production.up.railway.app';
+
+        const productionFrontendHost =
+    'tmliveweb.vercel.app';
+
+        if (
+            typeof window !== 'undefined' &&
+            window.location &&
+            window.location.hostname === productionFrontendHost
+        ) {
+            return productionSocketBase;
         }
 
         const apiBase = getApiBase();
