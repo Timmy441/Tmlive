@@ -1,8 +1,7 @@
 // ===== Configuration & State =====
 const socket = io(getDeploymentSocketUrl());
 const savedName = localStorage.getItem('tm_username');
-// if (!savedName) window.location.href = 'login.html';
-if (!savedName) myName = 'Guest' + Math.floor(Math.random() * 10000);
+if (!savedName) window.location.href = 'login.html';
 let myName = savedName;
 let myUserId = null; // assigned after generateUserId is defined
 let currentCall = null;
@@ -1206,3 +1205,4 @@ socket.on('gift_received', (data) => {
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 });
+
