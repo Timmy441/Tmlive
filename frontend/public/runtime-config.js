@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     function normalizeUrl(url) {
         return String(url || '').trim().replace(/\/+$/, '');
     }
@@ -78,7 +78,7 @@
         }
 
         const productionSocketBase =
-    'https://tm-live-backend-production.up.railway.app';
+    'https://tm-live-backend-production-46b8.up.railway.app';
 
         const productionFrontendHost =
     'tmliveweb.vercel.app';
