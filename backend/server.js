@@ -1,14 +1,197 @@
-﻿const { createServer } = require('http');
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
+const path = require('path');
+const { createServer } = require('http');
 const { Server } = require('socket.io');
+const mongoose = require('mongoose');
+const dns = require('dns');
 const jwt = require('jsonwebtoken');
-const { app, corsOptions, User } = require('./app');
+const { router: authRouter, User } = require('./auth');
+const adminRouter = require('./admin');
 
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+const app = express();
+app.set('trust proxy', 1);
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: corsOptions });
 
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'TM Live backend is running',
+    environment: process.env.VERCEL ? 'vercel' : 'local'
+  });
+});
+
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5001,http://127.0.0.1:5001,http://localhost:5500,http://127.0.0.1:5500').split(',').map(s => s.trim()).filter(Boolean);
+const corsOptions = {
+  origin: function(origin, callback) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin === 'null' ||
+      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  message: 'Too many requests from this IP, please try again later.'
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 80,
+  message: 'Too many authentication attempts, please try again later.'
+});
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 120,
+  message: 'Too many admin requests, please slow down.'
+});
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.socket.io", "https://www.gstatic.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      fontSrc: ["'self'", "data:", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      mediaSrc: ["'self'", "blob:"],
+      connectSrc: ["'self'", "http://localhost:5001", "ws://localhost:5001", "https:", "wss:"]
+    }
+  }
+}));
+app.use(cors(corsOptions));
+app.use(morgan('combined'));
+app.use(express.json());
+app.use('/api/auth', authLimiter, authRouter);
+app.use('/api/admin', adminLimiter, adminRouter);
+app.use('/api', apiLimiter);
+
+app.post('/api/chatbot', (req, res) => {
+  const userMessage = String(req.body?.message || '').trim();
+  if (!userMessage) {
+    return res.status(400).json({ message: 'Message is required' });
+  }
+
+  const text = userMessage.toLowerCase();
+  const baseReply = {
+    answer: 'Thanks for your question! I am available 24/7 and can help with account setup, streaming, gifts, payouts, and platform rules.',
+    category: 'general',
+    quickReplies: [
+      'How do I sign up?',
+      'How do I go live?',
+      'How do payouts work?',
+      'How do I contact support?'
+    ],
+    handoff: false
+  };
+
+  const helpMap = [
+    {
+      match: /pricing|cost|price|subscription/,
+      category: 'billing',
+      reply: 'TM Live currently offers a free core experience. Premium tools and upgrades will be available soon. Contact support if you need enterprise billing details.',
+      quickReplies: ['How do payouts work?', 'How do I contact support?']
+    },
+    {
+      match: /sign ?up|register|create account|create an account/,
+      category: 'account',
+      reply: 'To sign up, navigate to the registration page and enter your username, email address, and password. You can start streaming once your account is verified.',
+      quickReplies: ['How do I go live?', 'How do I edit my profile?']
+    },
+    {
+      match: /live stream|go live|streaming|stream/,
+      category: 'streaming',
+      reply: 'To start streaming, click the Go Live button and allow camera and microphone access. Then invite viewers to your stream room or share the stream link.',
+      quickReplies: ['How do viewers join?', 'How do I end a stream?']
+    },
+    {
+      match: /earnings|withdraw|payout|payment|diamonds/,
+      category: 'earnings',
+      reply: 'Earnings are shown in your dashboard. Diamonds convert to cash at the platform rate, and payout requests are typically processed within 3 to 5 business days.',
+      quickReplies: ['What is the payout minimum?', 'How do gifts work?']
+    },
+    {
+      match: /gift|send gift|gifted|gifts/,
+      category: 'gifts',
+      reply: 'Gifts can be sent during a live stream. Each gift adds diamonds to the recipient and creates a notification so creators know you supported them.',
+      quickReplies: ['How do I buy diamonds?', 'How do payouts work?']
+    },
+    {
+      match: /ban|blocked|suspended/,
+      category: 'account-safety',
+      reply: 'If an account is banned or suspended, please contact support directly using the email in the footer. Our team can review your account status.',
+      quickReplies: ['How do I contact support?', 'What are the community rules?']
+    },
+    {
+      match: /support|help|customer service|contact|human|agent/,
+      category: 'support',
+      reply: 'I am here 24/7. You can also reach real support at support@tmlive.com or WhatsApp via the contact button in the footer.',
+      quickReplies: ['Report a technical issue', 'What are the community rules?'],
+      handoff: true
+    },
+    {
+      match: /technical|error|bug|issue|not working|cannot connect/,
+      category: 'technical',
+      reply: 'For technical issues, try refreshing the page first. If the problem persists, send us a screenshot or describe the error and support will respond quickly.',
+      quickReplies: ['Report a technical issue', 'How do I contact support?'],
+      handoff: true
+    }
+  ];
+
+  const match = helpMap.find(item => item.match.test(text));
+  const response = match
+    ? {
+        answer: match.reply,
+        category: match.category,
+        quickReplies: match.quickReplies,
+        handoff: !!match.handoff
+      }
+    : baseReply;
+
+  res.json(response);
+});
+
+app.use(express.static(path.join(__dirname, '../frontend/public')));
+
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+});
+
+const io = new Server(httpServer, { cors: corsOptions });
 const users = {};
 const waitingCalls = {};
-const liveStreams = {};
+const liveStreams = {}; // { streamerId: { username, viewers: [], startTime, roomId } }
+
+io.use(async (socket, next) => {
+  const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+  if (!token) return next(new Error('Authentication required'));
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(payload.id).select('username banned');
+    if (!user || user.banned) return next(new Error('Authentication required'));
+    socket.user = { id: user._id.toString(), username: user.username };
+    next();
+  } catch (_) {
+    next(new Error('Authentication required'));
+  }
+});
 
 const adminNamespace = io.of('/admin');
 adminNamespace.use(async (socket, next) => {
@@ -57,10 +240,12 @@ function emitAdminUpdate(event, payload) {
 }
 
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  console.log('âœ… Client connected:', socket.id);
+  socket.emit('active_streams', Object.values(liveStreams));
 
-  socket.on('user_join', (username) => {
-    users[socket.id] = { username, room: 'general' };
+  socket.on('user_join', () => {
+    const username = socket.user.username;
+    users[socket.id] = { username, userId: socket.user.id, room: 'general' };
     io.emit('user_list', Object.values(users).map(u => u.username));
     io.emit('chat_message', {
       username: 'System',
@@ -75,21 +260,26 @@ io.on('connection', (socket) => {
     if (user) socket.broadcast.emit('user_typing', { username: user.username, isTyping });
   });
 
-  socket.on('gift_sent', (data) => {
+  // Gift notification
+  socket.on('gift_sent', (data = {}) => {
     io.emit('gift_received', {
-      fromUser: data.fromUser,
+      fromUser: socket.user.username,
       toUser: data.toUser,
       giftName: data.giftName,
       giftEmoji: data.giftEmoji,
       diamonds: data.diamonds
     });
+    // Also send to stream room if streamer is live
     if (data.streamRoom) {
       io.to(data.streamRoom).emit('stream_gift', data);
     }
   });
 
-  socket.on('start_stream', (data) => {
-    const { username } = data;
+  // ===== LIVE STREAM EVENTS =====
+
+  // Streamer starts live
+  socket.on('start_stream', () => {
+    const username = socket.user.username;
     const roomId = `stream_${socket.id}`;
     socket.join(roomId);
     liveStreams[socket.id] = {
@@ -99,23 +289,27 @@ io.on('connection', (socket) => {
       viewerCount: 0,
       startTime: new Date().toISOString()
     };
+    // Notify everyone someone is live
     io.emit('stream_started', {
       streamerId: socket.id,
       username,
       roomId
     });
     emitAdminUpdate('stream_started', { streamer: username, roomId });
-    console.log(`${username} went live`);
+    console.log(`ðŸ”´ ${username} went live`);
   });
 
-  socket.on('join_stream', (data) => {
-    const { roomId, username } = data;
+  // Viewer joins stream
+  socket.on('join_stream', (data = {}) => {
+    const { roomId } = data;
+    const username = socket.user.username;
+    if (!roomId || !liveStreams || liveStreams[socket.id]) return;
     socket.join(roomId);
     socket.streamRoomId = roomId;
     const stream = Object.values(liveStreams).find(s => s.roomId === roomId);
     if (stream) {
       stream.viewerCount++;
-      io.to(stream.streamerId).emit('viewer_joined', { username, viewerCount: stream.viewerCount });
+      io.to(stream.streamerId).emit('viewer_joined', { username, viewerSocketId: socket.id, viewerCount: stream.viewerCount });
       socket.emit('stream_info', stream);
       io.to(roomId).emit('stream_comment', {
         username: 'System',
@@ -126,14 +320,17 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('stream_comment', (data) => {
+  // Stream comment/chat
+  socket.on('stream_comment', (data = {}) => {
+    if (!data.roomId || !String(data.message || '').trim()) return;
     io.to(data.roomId).emit('stream_comment', {
-      username: data.username,
-      message: data.message,
+      username: socket.user.username,
+      message: String(data.message).trim().slice(0, 1000),
       time: new Date().toLocaleTimeString()
     });
   });
 
+  // WebRTC offer from streamer to viewer
   socket.on('stream_offer', (data) => {
     io.to(data.viewerSocketId).emit('stream_offer', {
       offer: data.offer,
@@ -141,6 +338,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // WebRTC answer from viewer to streamer
   socket.on('stream_answer', (data) => {
     io.to(data.streamerId).emit('stream_answer', {
       answer: data.answer,
@@ -148,6 +346,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // ICE candidates for stream
   socket.on('stream_ice', (data) => {
     io.to(data.target).emit('stream_ice', {
       candidate: data.candidate,
@@ -155,6 +354,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Streamer ends stream
   socket.on('end_stream', (data) => {
     const stream = liveStreams[socket.id];
     if (stream) {
@@ -162,10 +362,22 @@ io.on('connection', (socket) => {
       io.emit('stream_finished', { streamerId: socket.id, username: stream.username });
       emitAdminUpdate('stream_finished', { streamer: stream.username, roomId: stream.roomId });
       delete liveStreams[socket.id];
-      console.log(`${stream.username} ended stream`);
+      console.log(`âš« ${stream.username} ended stream`);
     }
   });
 
+  socket.on('leave_stream', (data = {}) => {
+    const roomId = socket.streamRoomId || data.roomId;
+    const stream = Object.values(liveStreams).find(s => s.roomId === roomId);
+    if (!stream) return;
+    socket.leave(roomId);
+    socket.streamRoomId = null;
+    stream.viewerCount = Math.max(0, stream.viewerCount - 1);
+    io.to(stream.streamerId).emit('viewer_left', { username: socket.user.username, viewerCount: stream.viewerCount });
+    emitAdminUpdate('viewer_left', { streamer: stream.username, username: socket.user.username, viewerCount: stream.viewerCount });
+  });
+
+  // Video call signaling
   socket.on('call_user', (data) => {
     const targetSocket = Object.keys(users).find(key => users[key].username === data.target);
     if (targetSocket) {
@@ -201,6 +413,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const user = users[socket.id];
     if (user) {
+      // Handle if user is a streamer
       if (liveStreams[socket.id]) {
         const stream = liveStreams[socket.id];
         io.to(stream.roomId).emit('stream_ended', { username: stream.username });
@@ -208,6 +421,7 @@ io.on('connection', (socket) => {
         emitAdminUpdate('stream_finished', { streamer: stream.username, roomId: stream.roomId });
         delete liveStreams[socket.id];
       }
+      // Handle if user was a stream viewer
       if (socket.streamRoomId) {
         const stream = Object.values(liveStreams).find(s => s.roomId === socket.streamRoomId);
         if (stream && stream.viewerCount > 0) {
@@ -228,11 +442,24 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5001;
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server on http://localhost:${PORT}`);
-  console.log('Video calling ready!');
-  console.log('Live streaming ready!');
-});
+if (typeof dns.setServers === 'function') {
+  dns.setServers(['1.1.1.1', '8.8.8.8']);
+}
 
-module.exports = { httpServer, io };
+mongoose.connect(process.env.MONGO_URI, {
+  serverSelectionTimeoutMS: 10000,
+  connectTimeoutMS: 10000,
+})
+  .then(() => console.log('âœ… MongoDB connected'))
+  .catch(err => console.log('âŒ MongoDB error:', err));
+
+const PORT = process.env.PORT || 5001;
+if (!process.env.VERCEL) {
+  httpServer.listen(PORT, () => {
+    console.log(`Server on http://localhost:${PORT}`);
+    console.log('Video calling ready!');
+    console.log('Live streaming ready!');
+  });
+}
+
+module.exports = app;
