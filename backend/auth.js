@@ -6,6 +6,15 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+function getJwtSecret() {
+    if (!process.env.JWT_SECRET) {
+        const error = new Error('JWT_SECRET is not configured');
+        error.code = 'JWT_SECRET_MISSING';
+        throw error;
+    }
+    return process.env.JWT_SECRET;
+}
+
 // User Model
 const UserSchema = new mongoose.Schema({
     username:  { type: String, required: true, unique: true },
@@ -72,29 +81,43 @@ async function authMiddleware(req, res, next) {
 // SIGN UP
 router.post('/signup', async (req, res) => {
     try {
-        const { username, email, password } = req.body;
-        const exists = await User.findOne({ email });
+        const username = String(req.body?.username || '').trim();
+        const email = String(req.body?.email || '').trim().toLowerCase();
+        const password = String(req.body?.password || '');
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'Username, email, and password are required' });
+        }
+        const exists = await User.findOne({ $or: [{ email }, { username }] });
         if (exists) return res.status(400).json({ message: 'Email already registered' });
         const hashed = await bcrypt.hash(password, 10);
         const user = new User({ username, email, password: hashed });
         await user.save();
-        const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ id: user._id, username: user.username }, getJwtSecret(), { expiresIn: '7d' });
         res.json({ token, username: user.username });
     } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('[SIGNUP ERROR]', { name: err.name, message: err.message });
+        res.status(err.code === 'JWT_SECRET_MISSING' ? 503 : 500).json({
+            message: err.code === 'JWT_SECRET_MISSING'
+                ? 'Authentication service is not configured'
+                : 'Server error'
+        });
     }
 });
 
 // LOGIN
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const email = String(req.body?.email || '').trim().toLowerCase();
+        const password = String(req.body?.password || '');
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: 'Invalid email or password' });
         if (user.banned) return res.status(403).json({ message: 'Account banned' });
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(400).json({ message: 'Invalid email or password' });
-        const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ id: user._id, username: user.username }, getJwtSecret(), { expiresIn: '7d' });
         res.json({ token, username: user.username });
     } catch (err) {
         console.error('[LOGIN ERROR]', {
@@ -102,7 +125,11 @@ router.post('/login', async (req, res) => {
             message: err.message,
             stack: err.stack
         });
-        res.status(500).json({ message: 'Server error' });
+        res.status(err.code === 'JWT_SECRET_MISSING' ? 503 : 500).json({
+            message: err.code === 'JWT_SECRET_MISSING'
+                ? 'Authentication service is not configured'
+                : 'Server error'
+        });
     }
 });
 
