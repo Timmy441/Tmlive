@@ -5,17 +5,16 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="shortcut icon" href="favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TM Live - Professional Video Chat Platform</title>
+    <title>TM Live | Creator Studio</title>
   <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <script src="config.js"></script>
         <script src="runtime-config.js"></script>
 </head>
 <body>
     <!-- Page Loader -->
     <div id="pageLoader" style="
         position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999;
-        background: #0f0f1a url('../img/Background_1.jpg') center/cover no-repeat;
+        background: #0f0f1a url('Img/Background 1.jpg') center/cover no-repeat;
         display:flex; flex-direction:column; align-items:center; justify-content:center;
         transition: opacity 0.5s ease;
     ">
@@ -66,16 +65,18 @@
             <header class="header">
                 <div class="header-left">
                     <i class="fas fa-video header-icon"></i>
-                    <h1>TM Live</h1>
+                    <div>
+                        <h1>TM Live</h1>
+                        <span class="brand-kicker">Creator Studio</span>
+                    </div>
                 </div>
                 <div class="header-center header-center--stack">
-                    <h2>Professional Video Chat Platform</h2>
+                    <h2>Your live workspace</h2>
                     <nav class="header-links">
                         <a class="nav-link active" href="index.html">Dashboard</a>
                         <a class="nav-link" href="livestream.html">Live</a>
                         <a class="nav-link" href="earnings.html">Earnings</a>
                         <a class="nav-link" href="profile.html">Profile</a>
-                        <a class="nav-link" href="Game.html">Games</a>
                     </nav>
                 </div>
                 <div class="header-right">
@@ -107,68 +108,46 @@
                 <span id="statusText">Checking your account…</span>
             </div>
 
-            <section class="hero-section">
-                <div class="hero-copy">
-                    <span class="eyebrow">Creator dashboard</span>
-                    <h1>Stream with confidence. Grow your audience.</h1>
-                    <p class="hero-subtitle">Launch live broadcasts, manage chat, and monitor earnings from a premium dashboard experience.</p>
-                    <div class="hero-actions">
-                        <button class="hero-btn-primary" onclick="startLiveStream()">Go Live Now</button>
-                        <button class="hero-btn-secondary" onclick="window.location.href='earnings.html'">View Earnings</button>
+            <section class="studio-hero" aria-labelledby="studioTitle">
+                <div class="studio-copy">
+                    <span class="eyebrow"><i class="fas fa-circle"></i> Creator workspace</span>
+                    <h1 id="studioTitle">Everything you need to go live with confidence.</h1>
+                    <p>Prepare your broadcast, connect with your community, and keep your creator business moving from one focused workspace.</p>
+                    <div class="studio-actions">
+                        <button class="studio-primary" onclick="startLiveStream()"><i class="fas fa-broadcast-tower"></i> Start a live stream</button>
+                        <button class="studio-secondary" onclick="window.location.href='livestream.html'"><i class="fas fa-compass"></i> Explore live</button>
                     </div>
+                    <div class="studio-note"><i class="fas fa-shield-heart"></i> Your stream stays private until you choose to go live.</div>
                 </div>
-                <div class="hero-side">
-                    <div class="hero-visual">
-                        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80" alt="Live streaming studio" loading="lazy" />
+                <aside class="broadcast-card" aria-label="Broadcast readiness">
+                    <div class="broadcast-card-top">
+                        <div><span>Broadcast control</span><h3>Ready when you are</h3></div>
+                        <span class="ready-dot">Ready</span>
                     </div>
-                    <div class="hero-metrics">
-                    <div class="metric-card">
-                        <span class="metric-title">Active Streamers</span>
-                        <strong>12</strong>
+                    <div class="readiness-list">
+                        <div><span class="readiness-icon"><i class="fas fa-video"></i></span><span>Camera</span><strong>Check before going live</strong></div>
+                        <div><span class="readiness-icon"><i class="fas fa-microphone"></i></span><span>Microphone</span><strong>Check before going live</strong></div>
+                        <div><span class="readiness-icon"><i class="fas fa-comments"></i></span><span>Community chat</span><strong>Available now</strong></div>
                     </div>
-                    <div class="metric-card">
-                        <span class="metric-title">Live Chats</span>
-                        <strong>64</strong>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-title">Weekly Views</span>
-                        <strong>23.4K</strong>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-title">Total Earnings</span>
-                        <strong>$5.2K</strong>
-                    </div>
-                </div>
-            </div>
-        </section>
+                    <button class="broadcast-link" onclick="window.location.href='livestream.html'">Open Live Studio <i class="fas fa-arrow-right"></i></button>
+                </aside>
+            </section>
 
-                <div class="game-room-card">
-                    <div class="game-room-header">
-                        <div>
-                            <span class="game-room-icon">🎮</span>
-                            <h3>Snake Arena</h3>
-                        </div>
-                        <div class="game-room-status">Players: <strong id="gamePlayersCount">2/4</strong></div>
-                    </div>
-                    <p class="game-room-description">Jump into the game lobby and stay connected using the same live stream, chat, and video call tools you already use.</p>
-                    <div class="game-room-actions">
-                        <button class="game-room-btn" onclick="window.location.href='Game.html'">
-                            <i class="fas fa-compact-disc"></i> Open Game Hub
-                        </button>
-                        <button class="game-room-btn" onclick="openGameModal('snake')">
-                            <i class="fas fa-gamepad"></i> Play Snake
-                        </button>
-                        <button class="game-room-btn" onclick="openGameModal('football')">
-                            <i class="fas fa-futbol"></i> Football
-                        </button>
-                        <button class="game-room-btn" onclick="openGameModal('chess')">
-                            <i class="fas fa-chess-rook"></i> Chess
-                        </button>
-                        <button class="game-room-btn" onclick="openGameModal('ludo')">
-                            <i class="fas fa-cube"></i> Ludo
-                        </button>
-                    </div>
-                </div>
+            <section class="creator-overview" aria-label="Creator overview">
+                <article class="overview-card overview-card--accent">
+                    <span class="overview-icon"><i class="fas fa-signal"></i></span>
+                    <div><span class="overview-label">Live now</span><strong>Ready to broadcast</strong><small>Start when your camera and microphone are ready.</small></div>
+                </article>
+                <article class="overview-card">
+                    <span class="overview-icon"><i class="fas fa-wallet"></i></span>
+                    <div><span class="overview-label">Creator earnings</span><strong>Track your balance</strong><small>Review gifts, payouts, and earnings in one place.</small></div>
+                    <button class="overview-link" onclick="window.location.href='earnings.html'" aria-label="Open earnings"><i class="fas fa-arrow-up-right-from-square"></i></button>
+                </article>
+                <article class="overview-card">
+                    <span class="overview-icon"><i class="fas fa-user-gear"></i></span>
+                    <div><span class="overview-label">Creator profile</span><strong>Make your page yours</strong><small>Update your bio and profile picture for your audience.</small></div>
+                    <button class="overview-link" onclick="window.location.href='profile.html'" aria-label="Open profile"><i class="fas fa-arrow-up-right-from-square"></i></button>
+                </article>
             </section>
 
             <div class="panel-controls">
@@ -328,95 +307,6 @@
     <!-- Emoji Picker -->
     <div class="emoji-picker" id="emojiPicker">
         <div class="emoji-grid"></div>
-    </div>
-
-    <!-- Multi-Game Modal -->
-    <div class="game-modal" id="gameModal">
-        <div class="game-modal-content">
-            <div class="game-modal-header">
-                <div>
-                    <span class="game-room-icon">🎮</span>
-                    <div>
-                        <h3 id="gameModalTitle">Game Room</h3>
-                        <p class="game-room-description" id="gameModalSubtitle">Choose a game and jump in.</p>
-                    </div>
-                </div>
-                <button class="close-modal" onclick="closeGameModal()">×</button>
-            </div>
-
-            <div class="game-tabs">
-                <button class="game-tab active" data-game="snake" onclick="selectGameTab('snake')">Snake</button>
-                <button class="game-tab" data-game="football" onclick="selectGameTab('football')">Football</button>
-                <button class="game-tab" data-game="chess" onclick="selectGameTab('chess')">Chess</button>
-                <button class="game-tab" data-game="ludo" onclick="selectGameTab('ludo')">Ludo</button>
-            </div>
-
-            <div class="game-tab-panels">
-                <div class="game-tab-panel active" id="snakePanel">
-                    <div class="game-status-bar">
-                        <div>Score: <strong id="snakeScore">0</strong></div>
-                        <div>Status: <strong id="snakeStatus">Ready</strong></div>
-                    </div>
-                    <canvas id="snakeCanvas" width="480" height="360"></canvas>
-                    <div class="game-controls">
-                        <button class="btn-secondary" onclick="startSnakeGame()">Start</button>
-                        <button class="btn-secondary" onclick="pauseSnakeGame()">Pause</button>
-                        <button class="btn-primary" onclick="resetSnakeGame()">Reset</button>
-                    </div>
-                </div>
-
-                <div class="game-tab-panel" id="footballPanel">
-                    <div class="game-status-bar">
-                        <div>Goals: <strong id="footballScore">0</strong></div>
-                        <div>Status: <strong id="footballStatus">Ready</strong></div>
-                    </div>
-                    <div class="football-field" id="footballField">
-                        <div class="football-target" id="footballTarget"></div>
-                        <div class="football-ball" id="footballBall"></div>
-                    </div>
-                    <div class="game-controls">
-                        <button class="btn-secondary" onclick="shootFootballGoal()">Shoot</button>
-                        <button class="btn-primary" onclick="resetFootballGame()">Reset</button>
-                    </div>
-                </div>
-
-                <div class="game-tab-panel" id="chessPanel">
-                    <div class="game-status-bar">
-                        <div>Turn: <strong id="chessTurn">White</strong></div>
-                        <div>Moves: <strong id="chessMoveCount">0</strong></div>
-                    </div>
-                    <div class="chess-board" id="chessBoard"></div>
-                    <div class="game-controls" style="justify-content: space-between; flex-wrap: wrap;">
-                        <button class="btn-secondary" onclick="resetChessGame()">Reset</button>
-                        <div class="chess-help">Click a piece, then click its target square.</div>
-                    </div>
-                    <div class="chess-log" id="chessLog"></div>
-                </div>
-
-                <div class="game-tab-panel" id="ludoPanel">
-                    <div class="game-status-bar">
-                        <div>Mode: <strong id="ludoModeName">Computer</strong></div>
-                        <div>Dice: <strong id="ludoDice">-</strong></div>
-                    </div>
-                    <div class="ludo-mode-switch">
-                        <button class="btn-secondary" onclick="setLudoMode('computer')">Vs Computer</button>
-                        <button class="btn-secondary" onclick="setLudoMode('online')">Online 2-Player</button>
-                    </div>
-                    <div class="ludo-room-panel" id="ludoRoomPanel">
-                        <input type="text" id="ludoRoomInput" placeholder="Room code" maxlength="6">
-                        <button class="btn-primary" onclick="createLudoRoom()">Create Room</button>
-                        <button class="btn-secondary" onclick="joinLudoRoom()">Join Room</button>
-                    </div>
-                    <div class="ludo-room-status" id="ludoRoomStatus">Room: none</div>
-                    <div class="ludo-board" id="ludoBoard"></div>
-                    <div class="game-controls" style="flex-wrap: wrap; gap: 12px;">
-                        <button class="btn-secondary" onclick="rollLudoDice()">Roll Dice</button>
-                        <span class="ludo-instruction" id="ludoInstruction">Use dice then move a token.</span>
-                        <div id="ludoTokenButtons"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- File Upload Modal -->

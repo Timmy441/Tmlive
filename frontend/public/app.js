@@ -350,19 +350,6 @@ function showDashboardPanel(panel) {
     }
 }
 
-function joinGameRoom() {
-    showDashboardPanel('chat');
-    updateStatus('🎮 Joined the Snake Arena');
-    addNotification('Snake Arena is live — use chat, stream, or video call to connect with your team.', 'success');
-}
-
-function updateGameRoomPlayers(otherPlayerCount) {
-    const countEl = document.getElementById('gamePlayersCount');
-    if (!countEl) return;
-    const currentCount = Math.min(4, Math.max(1, otherPlayerCount + 1));
-    countEl.textContent = `${currentCount}/4`;
-}
-
 // ===== Chat Functions =====
 window.sendMessage = function() {
     const input = document.getElementById('messageInput');
@@ -560,7 +547,6 @@ function exportChat() {
 function updateUsers(users) {
     const container = document.getElementById('userList');
     const otherUsers = users.filter(u => u !== myName);
-    updateGameRoomPlayers(otherUsers.length);
     
     if (otherUsers.length === 0) {
         container.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">No other users online</div>';
@@ -726,175 +712,6 @@ function uploadFile() {
 // ===== Live Stream Functions =====
 function startLiveStream() {
     window.location.href = 'livestream.html';
-}
-
-// ===== Snake Game Functions =====
-let snakeGameState = {
-    active: false,
-    running: false,
-    intervalId: null,
-    direction: 'right',
-    nextDirection: 'right',
-    score: 0,
-    snake: [],
-    food: null,
-    speed: 120,
-    cellSize: 20,
-    cols: 24,
-    rows: 18,
-    canvas: null,
-    ctx: null
-};
-
-function openSnakeGame() {
-    document.getElementById('gameModal').classList.add('active');
-    if (!snakeGameState.canvas) {
-        snakeGameState.canvas = document.getElementById('snakeCanvas');
-        snakeGameState.ctx = snakeGameState.canvas.getContext('2d');
-        resetSnakeGame();
-    }
-    snakeGameState.active = true;
-    updateSnakeStatus('Ready');
-    window.addEventListener('keydown', handleSnakeKey);
-}
-
-function closeSnakeGame() {
-    document.getElementById('gameModal').classList.remove('active');
-    snakeGameState.active = false;
-    pauseSnakeGame();
-    window.removeEventListener('keydown', handleSnakeKey);
-}
-
-function startSnakeGame() {
-    if (!snakeGameState.active) openSnakeGame();
-    if (snakeGameState.running) return;
-    snakeGameState.running = true;
-    updateSnakeStatus('Playing');
-    snakeGameState.intervalId = setInterval(() => gameTick(), snakeGameState.speed);
-}
-
-function pauseSnakeGame() {
-    if (!snakeGameState.running) return;
-    snakeGameState.running = false;
-    clearInterval(snakeGameState.intervalId);
-    snakeGameState.intervalId = null;
-    updateSnakeStatus('Paused');
-}
-
-function resetSnakeGame() {
-    snakeGameState.direction = 'right';
-    snakeGameState.nextDirection = 'right';
-    snakeGameState.score = 0;
-    snakeGameState.running = false;
-    clearInterval(snakeGameState.intervalId);
-    snakeGameState.intervalId = null;
-    snakeGameState.snake = [
-        { x: 6, y: 9 },
-        { x: 5, y: 9 },
-        { x: 4, y: 9 }
-    ];
-    snakeGameState.food = placeFood();
-    drawSnakeGame();
-    updateSnakeScore();
-    updateSnakeStatus('Ready');
-}
-
-function placeFood() {
-    const positions = [];
-    for (let x = 0; x < snakeGameState.cols; x++) {
-        for (let y = 0; y < snakeGameState.rows; y++) {
-            const occupied = snakeGameState.snake.some(segment => segment.x === x && segment.y === y);
-            if (!occupied) positions.push({ x, y });
-        }
-    }
-    return positions[Math.floor(Math.random() * positions.length)];
-}
-
-function gameTick() {
-    snakeGameState.direction = snakeGameState.nextDirection;
-    const head = { ...snakeGameState.snake[0] };
-    if (snakeGameState.direction === 'right') head.x++;
-    if (snakeGameState.direction === 'left') head.x--;
-    if (snakeGameState.direction === 'up') head.y--;
-    if (snakeGameState.direction === 'down') head.y++;
-
-    if (head.x < 0 || head.x >= snakeGameState.cols || head.y < 0 || head.y >= snakeGameState.rows) {
-        endSnakeGame();
-        return;
-    }
-
-    const collision = snakeGameState.snake.some(segment => segment.x === head.x && segment.y === head.y);
-    if (collision) {
-        endSnakeGame();
-        return;
-    }
-
-    snakeGameState.snake.unshift(head);
-    if (head.x === snakeGameState.food.x && head.y === snakeGameState.food.y) {
-        snakeGameState.score += 10;
-        snakeGameState.food = placeFood();
-        updateSnakeScore();
-    } else {
-        snakeGameState.snake.pop();
-    }
-
-    drawSnakeGame();
-}
-
-function endSnakeGame() {
-    pauseSnakeGame();
-    updateSnakeStatus('Game Over');
-    addNotification(`Snake game finished. Score: ${snakeGameState.score}`, 'info');
-}
-
-function drawSnakeGame() {
-    const ctx = snakeGameState.ctx;
-    const size = snakeGameState.cellSize;
-    ctx.clearRect(0, 0, snakeGameState.canvas.width, snakeGameState.canvas.height);
-    ctx.fillStyle = '#08101f';
-    ctx.fillRect(0, 0, snakeGameState.canvas.width, snakeGameState.canvas.height);
-
-    ctx.fillStyle = '#ffcd38';
-    snakeGameState.snake.forEach((segment, index) => {
-        ctx.fillStyle = index === 0 ? '#ffffff' : '#7c9eff';
-        ctx.fillRect(segment.x * size, segment.y * size, size - 2, size - 2);
-    });
-
-    if (snakeGameState.food) {
-        ctx.fillStyle = '#e53e3e';
-        ctx.fillRect(snakeGameState.food.x * size, snakeGameState.food.y * size, size - 2, size - 2);
-    }
-}
-
-function updateSnakeScore() {
-    document.getElementById('snakeScore').textContent = snakeGameState.score;
-}
-
-function updateSnakeStatus(status) {
-    document.getElementById('snakeStatus').textContent = status;
-}
-
-function handleSnakeKey(event) {
-    if (!snakeGameState.active) return;
-    const key = event.key;
-    if (key === 'ArrowUp' && snakeGameState.direction !== 'down') snakeGameState.nextDirection = 'up';
-    if (key === 'ArrowDown' && snakeGameState.direction !== 'up') snakeGameState.nextDirection = 'down';
-    if (key === 'ArrowLeft' && snakeGameState.direction !== 'right') snakeGameState.nextDirection = 'left';
-    if (key === 'ArrowRight' && snakeGameState.direction !== 'left') snakeGameState.nextDirection = 'right';
-    if (key.toLowerCase() === 'p') pauseSnakeGame();
-}
-
-function joinGameRoom() {
-    showDashboardPanel('chat');
-    updateStatus('🎮 Joined the Snake Arena');
-    addNotification('Snake Arena is live — use chat, stream, or video call to connect with your team.', 'success');
-}
-
-function updateGameRoomPlayers(otherPlayerCount) {
-    const countEl = document.getElementById('gamePlayersCount');
-    if (!countEl) return;
-    const currentCount = Math.min(4, Math.max(1, otherPlayerCount + 1));
-    countEl.textContent = `${currentCount}/4`;
 }
 
 function createGroupChat() {
