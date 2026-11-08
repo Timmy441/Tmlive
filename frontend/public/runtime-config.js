@@ -45,11 +45,16 @@
     }
 
     function getApiBase() {
-        const productionApiBase =
-    'https://tmlive-avtn.vercel.app';
+        const productionApiBase = 'https://tmlive-avtn.vercel.app';
+        const productionFrontendHost = 'tmliveweb.vercel.app';
+        const configuredApiBase = normalizeUrl(
+            window.TM_API_BASE ||
+            localStorage.getItem('tm_api_base')
+        );
 
-        const productionFrontendHost =
-    'tmliveweb.vercel.app';
+        if (configuredApiBase) {
+            return configuredApiBase;
+        }
 
         if (
             typeof window !== 'undefined' &&
@@ -60,8 +65,6 @@
         }
 
         return normalizeUrl(
-            localStorage.getItem('tm_api_base') ||
-            window.TM_API_BASE ||
             getLocalBackendFallback()
         );
     }

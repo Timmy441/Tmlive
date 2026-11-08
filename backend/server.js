@@ -6,33 +6,38 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const mongoose = require('mongoose');
 const dns = require('dns');
 const jwt = require('jsonwebtoken');
-const { router: authRouter, User } = require('./auth');
-const adminRouter = require('./admin');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+const { connectDatabase, databaseStatus } = require('./db');
+const { router: authRouter, User } = require('./auth');
+const adminRouter = require('./admin');
 
 const app = express();
 app.set('trust proxy', 1);
 const httpServer = createServer(app);
 
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
+  const database = databaseStatus();
+  res.status(database === 'connected' ? 200 : 503).json({
+    status: database === 'connected' ? 'ok' : 'degraded',
     message: 'TM Live backend is running',
-    environment: process.env.VERCEL ? 'vercel' : 'local'
+    environment: process.env.VERCEL ? 'vercel' : 'local',
+    database,
   });
 });
 
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5001,http://127.0.0.1:5001,http://localhost:5500,http://127.0.0.1:5500').split(',').map(s => s.trim()).filter(Boolean);
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5001,http://127.0.0.1:5001,http://localhost:5500,http://127.0.0.1:5500,https://tmliveweb.vercel.app')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 const corsOptions = {
   origin: function(origin, callback) {
     if (
       !origin ||
       allowedOrigins.includes(origin) ||
-      origin === 'null' ||
       /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
     ) {
       callback(null, true);
@@ -76,11 +81,23 @@ app.use(helmet({
     }
   }
 }));
+async function requireDatabase(req, res, next) {
+  try {
+    await connectDatabase();
+    next();
+  } catch (error) {
+    console.error('[DATABASE UNAVAILABLE]', {
+      name: error.name,
+      message: error.message,
+    });
+    res.status(503).json({ message: 'Database temporarily unavailable. Please try again shortly.' });
+  }
+}
 app.use(cors(corsOptions));
 app.use(morgan('combined'));
 app.use(express.json());
-app.use('/api/auth', authLimiter, authRouter);
-app.use('/api/admin', adminLimiter, adminRouter);
+app.use('/api/auth', authLimiter, requireDatabase, authRouter);
+app.use('/api/admin', adminLimiter, requireDatabase, adminRouter);
 app.use('/api', apiLimiter);
 
 app.post('/api/chatbot', (req, res) => {
@@ -198,6 +215,7 @@ adminNamespace.use(async (socket, next) => {
   const token = socket.handshake.auth.token || socket.handshake.query.token;
   if (!token) return next(new Error('Authentication required'));
   try {
+    await connectDatabase();
     const secret = process.env.JWT_SECRET;
     const payload = jwt.verify(token, secret);
     const user = await User.findById(payload.id);
@@ -446,12 +464,9 @@ if (typeof dns.setServers === 'function') {
   dns.setServers(['1.1.1.1', '8.8.8.8']);
 }
 
-mongoose.connect(process.env.MONGO_URI, {
-  serverSelectionTimeoutMS: 10000,
-  connectTimeoutMS: 10000,
-})
-  .then(() => console.log('âœ… MongoDB connected'))
-  .catch(err => console.log('âŒ MongoDB error:', err));
+connectDatabase()
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.log('❌ MongoDB error:', err));
 
 const PORT = process.env.PORT || 5001;
 if (!process.env.VERCEL) {

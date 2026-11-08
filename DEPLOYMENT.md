@@ -1,41 +1,36 @@
 # TM Live Deployment
 
-## Recommended setup
-- Frontend: Vercel
-- Backend: Render
+## Production setup
+- Frontend: Vercel (`https://tmliveweb.vercel.app`)
+- Backend: Vercel (`https://tmlive-avtn.vercel.app`)
 - Database: MongoDB Atlas
 
 ## GitHub Pages option
 - GitHub Pages can host the static frontend in `frontend/public`.
-- GitHub Pages cannot run the Node.js backend, so the backend still needs Render or another server host.
-- After deploying the frontend, save the backend API URL on the login page, for example `https://tm-live-backend.onrender.com`.
+- GitHub Pages cannot run the Node.js backend, so it uses the deployed Vercel backend.
+- After deploying the frontend, save `https://tmlive-avtn.vercel.app` on the login page if an API override is needed.
 
 ## Backend deploy steps
 1. Push the repo to GitHub.
-2. Create a new Render Web Service from the repo.
-3. Use `render.yaml` or set:
-   - Root directory: `backend`
-   - Build command: `npm install`
-   - Start command: `npm start`
-4. Add environment variables on Render:
+2. Deploy the `backend` directory as the Vercel project root.
+3. Add these environment variables in the Vercel project:
    - `MONGO_URI`
    - `JWT_SECRET`
-   - `CORS_ORIGIN` = your Vercel domain, for example `https://tm-live.vercel.app`
-   - `PORT` can be left to Render, or use `10000`
+   - `CORS_ORIGIN=https://tmliveweb.vercel.app`
+4. Verify `https://tmlive-avtn.vercel.app/api/health` reports `status: "ok"` and `database: "connected"`.
 
 ## Frontend deploy steps
 1. Create a Vercel project from `frontend/public`.
-2. Deploy the static site.
-3. On the login page, enter the backend API URL once, for example:
-   - `https://tm-live-backend.onrender.com`
-4. The app will save that value in the browser and reuse it.
+2. Deploy the static site to `https://tmliveweb.vercel.app`.
+3. The runtime configuration routes this host to `https://tmlive-avtn.vercel.app` automatically.
+4. A temporary API override can still be saved on the login page for local/staging troubleshooting.
 
 ## GitHub Pages deploy steps
 1. Open the repository on GitHub.
 2. Go to `Settings` > `Pages`.
 3. Set the source to GitHub Actions.
 4. The workflow in `.github/workflows/deploy-pages.yml` will publish the static frontend.
-5. After the Pages URL is live, open the site and enter the Render backend URL on the login page.
+5. After the Pages URL is live, open the site and enter `https://tmlive-avtn.vercel.app` on the login page.
 
 ## Admin panel
 - Open `/admin/index.html` on the deployed frontend.

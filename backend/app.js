@@ -4,31 +4,36 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const mongoose = require('mongoose');
 const dns = require('dns');
-const { router: authRouter, User } = require('./auth');
-const adminRouter = require('./admin');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+const { connectDatabase, databaseStatus } = require('./db');
+const { router: authRouter, User } = require('./auth');
+const adminRouter = require('./admin');
 
 const app = express();
 app.set('trust proxy', 1);
 
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
+  const database = databaseStatus();
+  res.status(database === 'connected' ? 200 : 503).json({
+    status: database === 'connected' ? 'ok' : 'degraded',
     message: 'TM Live backend is running',
-    environment: process.env.VERCEL ? 'vercel' : 'local'
+    environment: process.env.VERCEL ? 'vercel' : 'local',
+    database,
   });
 });
 
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5001,http://127.0.0.1:5001,http://localhost:5500,http://127.0.0.1:5500,https://tmliveweb.vercel.app').split(',').map(s => s.trim());
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5001,http://127.0.0.1:5001,http://localhost:5500,http://127.0.0.1:5500,https://tmliveweb.vercel.app')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 const corsOptions = {
   origin: function(origin, callback) {
     if (
       !origin ||
       allowedOrigins.includes(origin) ||
-      origin === 'null' ||
       /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
     ) {
       callback(null, true);
@@ -58,12 +63,25 @@ const adminLimiter = rateLimit({
   message: 'Too many admin requests, please slow down.'
 });
 
+async function requireDatabase(req, res, next) {
+  try {
+    await connectDatabase();
+    next();
+  } catch (error) {
+    console.error('[DATABASE UNAVAILABLE]', {
+      name: error.name,
+      message: error.message,
+    });
+    res.status(503).json({ message: 'Database temporarily unavailable. Please try again shortly.' });
+  }
+}
+
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(morgan('combined'));
 app.use(express.json());
-app.use('/api/auth', authLimiter, authRouter);
-app.use('/api/admin', adminLimiter, adminRouter);
+app.use('/api/auth', authLimiter, requireDatabase, authRouter);
+app.use('/api/admin', adminLimiter, requireDatabase, adminRouter);
 app.use('/api', apiLimiter);
 
 app.post('/api/chatbot', (req, res) => {
@@ -161,11 +179,8 @@ if (typeof dns.setServers === 'function') {
   dns.setServers(['1.1.1.1', '8.8.8.8']);
 }
 
-mongoose.connect(process.env.MONGO_URI, {
-  serverSelectionTimeoutMS: 10000,
-  connectTimeoutMS: 10000,
-})
+connectDatabase()
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log('MongoDB error:', err));
+  .catch((err) => console.log('MongoDB error:', err));
 
 module.exports = { app, corsOptions, User };

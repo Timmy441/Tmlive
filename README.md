@@ -19,14 +19,14 @@ TM Live is a real-time video chat and livestream platform with a Node.js backend
 
 ## Deploy Options
 ### Backend
-- Recommended host: Render
+- Production backend: Vercel at `https://tmlive-avtn.vercel.app`
 - Set these environment variables:
   - `MONGO_URI`
   - `JWT_SECRET`
-  - `CORS_ORIGIN`
+  - `CORS_ORIGIN=https://tmliveweb.vercel.app`
 
 ### Frontend
-- Recommended host: Vercel
+- Production frontend: Vercel at `https://tmliveweb.vercel.app`
 - GitHub Pages is also supported for the static frontend via `.github/workflows/deploy-pages.yml`.
 - GitHub Pages cannot run the backend, so the frontend must point to the deployed backend URL.
 
