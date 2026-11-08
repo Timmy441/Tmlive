@@ -6,7 +6,6 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const dns = require('dns');
 const jwt = require('jsonwebtoken');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -459,10 +458,6 @@ io.on('connection', (socket) => {
     }
   });
 });
-
-if (typeof dns.setServers === 'function') {
-  dns.setServers(['1.1.1.1', '8.8.8.8']);
-}
 
 connectDatabase()
   .then(() => console.log('✅ MongoDB connected'))

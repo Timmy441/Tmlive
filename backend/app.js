@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-const dns = require('dns');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
@@ -174,10 +173,6 @@ app.use(express.static(path.join(__dirname, '../frontend/public')));
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
 });
-
-if (typeof dns.setServers === 'function') {
-  dns.setServers(['1.1.1.1', '8.8.8.8']);
-}
 
 connectDatabase()
   .then(() => console.log('MongoDB connected'))
